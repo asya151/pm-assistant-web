@@ -9,7 +9,7 @@
     "test": "echo \"No tests yet\""
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.79.0",
+    "@anthropic-ai/sdk": "^0.27.0",
     "@azure/functions": "^4.0.0"
   },
   "devDependencies": {

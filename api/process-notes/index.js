@@ -1,6 +1,6 @@
 // Azure Functions - Meeting Notes Processor
 const { app } = require('@azure/functions');
-const Anthropic = require('@anthropic-ai/sdk');
+const { Anthropic } = require('@anthropic-ai/sdk');
 
 // Domain context mapping
 const DOMAIN_CONTEXTS = {
