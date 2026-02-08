@@ -1,0 +1,20 @@
+{
+  "name": "pm-assistant-web",
+  "version": "1.0.0",
+  "description": "PM Assistant - Web interface for processing meeting notes with Claude AI on Azure",
+  "main": "index.js",
+  "scripts": {
+    "start": "func start",
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.79.0",
+    "@azure/functions": "^4.0.0"
+  },
+  "devDependencies": {
+    "azure-functions-core-tools": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PM Assistant - Meeting Notes Processor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 300px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-height: 400px;
+        }
+
+        .results h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-content {
+            display: none;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .result-content.active {
+            display: block;
+        }
+
+        .result-content pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .action-items {
+            margin-top: 20px;
+        }
+
+        .action-item {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .action-item h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .action-item p {
+            margin: 4px 0;
+            color: #666;
+        }
+
+        .error {
+            background: #fee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            border-radius: 4px;
+            color: #c62828;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .domains {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .domain-chip {
+            background: #f0f0f0;
+            padding: 8px 12px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .domain-chip.active {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 PM Assistant</h1>
+            <p>Transform meeting notes into actionable items instantly</p>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>📝 Meeting Notes</h2>
+
+                <div class="form-group">
+                    <label for="domain">Select PM Domain</label>
+                    <select id="domain">
+                        <option value="product-strategy">Product Strategy</option>
+                        <option value="engineering">Engineering Coordination</option>
+                        <option value="customer-success">Customer Success</option>
+                        <option value="growth-marketing">Growth & Marketing</option>
+                        <option value="custom">Custom Domain</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="customDomainGroup" style="display: none;">
+                    <label for="customDomain">Custom Domain Name</label>
+                    <input type="text" id="customDomain" placeholder="e.g., Operations">
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Paste Meeting Notes</label>
+                    <textarea id="notes" placeholder="Meeting: Q1 Strategy Review
+Date: Feb 8, 2026
+Attendees: Sarah, John, Mike
+
+Discussion:
+- Reviewed quarterly goals
+- Discussed new feature launch
+- Marketing timeline discussion
+
+Action items:
+- John to complete spec by Feb 15
+- Sarah to review budget allocation
+..."></textarea>
+                </div>
+
+                <button class="btn" id="processBtn" onclick="processNotes()">
+                    🚀 Process Notes
+                </button>
+            </div>
+
+            <div class="card">
+                <h2>💡 Quick Tips</h2>
+                <ul style="line-height: 2; color: #666;">
+                    <li>✓ Include meeting date and attendees</li>
+                    <li>✓ Note key decisions made</li>
+                    <li>✓ List action items with owners</li>
+                    <li>✓ Mention deadlines when discussed</li>
+                    <li>✓ Flag any risks or blockers</li>
+                </ul>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px; color: #333;">📊 Domain Focus</h3>
+                <p style="color: #666; line-height: 1.6;">
+                    <strong>Product Strategy:</strong> Roadmap, market positioning, vision<br>
+                    <strong>Engineering:</strong> Technical deliverables, sprint planning<br>
+                    <strong>Customer Success:</strong> Onboarding, retention, support<br>
+                    <strong>Growth:</strong> User acquisition, marketing campaigns
+                </p>
+            </div>
+        </div>
+
+        <div class="results">
+            <h2>📋 Results</h2>
+
+            <div class="error" id="error"></div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="color: #666;">Processing your meeting notes...</p>
+                <p style="color: #999; font-size: 0.9em; margin-top: 10px;">This usually takes 5-10 seconds</p>
+            </div>
+
+            <div class="result-content" id="resultContent">
+                <div id="resultText"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Show/hide custom domain input
+        document.getElementById('domain').addEventListener('change', function() {
+            const customGroup = document.getElementById('customDomainGroup');
+            if (this.value === 'custom') {
+                customGroup.style.display = 'block';
+            } else {
+                customGroup.style.display = 'none';
+            }
+        });
+
+        async function processNotes() {
+            const domain = document.getElementById('domain').value;
+            const customDomain = document.getElementById('customDomain').value;
+            const notes = document.getElementById('notes').value.trim();
+
+            // Clear previous results
+            document.getElementById('error').classList.remove('active');
+            document.getElementById('resultContent').classList.remove('active');
+
+            // Validation
+            if (!notes) {
+                showError('Please enter meeting notes');
+                return;
+            }
+
+            if (domain === 'custom' && !customDomain) {
+                showError('Please enter a custom domain name');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('processBtn').disabled = true;
+
+            try {
+                // Call your backend API
+                const response = await fetch('/api/process-notes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        domain: domain === 'custom' ? customDomain : domain,
+                        notes: notes
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to process notes');
+                }
+
+                const result = await response.json();
+                displayResults(result);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Failed to process notes. Please check your backend connection and try again.');
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('processBtn').disabled = false;
+            }
+        }
+
+        function displayResults(result) {
+            const resultText = document.getElementById('resultText');
+
+            // Format the result nicely
+            let html = '<div style="white-space: pre-wrap; line-height: 1.8;">';
+            html += result.analysis || result.result || JSON.stringify(result, null, 2);
+            html += '</div>';
+
+            resultText.innerHTML = html;
+            document.getElementById('resultContent').classList.add('active');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('active');
+        }
+
+        // Demo mode - for testing without backend
+        function demoMode() {
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('processBtn').disabled = true;
+
+            setTimeout(() => {
+                const demoResult = {
+                    analysis: `📊 MEETING ANALYSIS
+
+📝 MEETING SUMMARY
+Strategy review meeting focused on Q1 goals and new feature launch timeline. Key decision to delay launch to March 15 to align with marketing campaign.
+
+✅ ACTION ITEMS
+
+1. Complete Feature Specification
+   Owner: John
+   Due Date: Feb 15, 2026
+   Priority: High
+   Dependencies: None
+
+2. Review Budget Allocation
+   Owner: Sarah
+   Due Date: Feb 20, 2026
+   Priority: Medium
+   Dependencies: Finance team input
+
+3. Marketing Timeline Draft
+   Owner: Marketing team
+   Due Date: End of week
+   Priority: High
+   Dependencies: Launch date confirmation
+
+🎯 KEY DECISIONS
+• Launch delayed to March 15, 2026
+• Focus next 2 sprints on performance improvements
+• Prioritize competitor analysis
+
+⚠️ RISKS & CONCERNS
+• API stability concerns raised by engineering
+• Budget allocation for Q2 still unclear
+• Hiring timeline for 2 new engineers undefined
+
+📌 NEXT STEPS
+1. Schedule follow-up on budget (Sarah)
+2. Engineering to complete performance audit
+3. Marketing to finalize campaign timeline`
+                };
+
+                displayResults(demoResult);
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('processBtn').disabled = false;
+            }, 2000);
+        }
+
+        // Uncomment this line to test the frontend without a backend
+        // window.processNotes = demoMode;
+    </script>
+</body>
+</html>

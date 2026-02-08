@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PM Assistant - DEMO MODE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .demo-banner {
+            background: #ff9800;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 300px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-height: 400px;
+        }
+
+        .results h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-content {
+            display: none;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .result-content.active {
+            display: block;
+        }
+
+        .result-content pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-banner">
+        🎭 DEMO MODE - This is a preview with simulated results. Deploy to GitHub + Vercel for real AI processing!
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🤖 PM Assistant</h1>
+            <p>Transform meeting notes into actionable items instantly</p>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>📝 Meeting Notes</h2>
+
+                <div class="form-group">
+                    <label for="domain">Select PM Domain</label>
+                    <select id="domain">
+                        <option value="product-strategy">Product Strategy</option>
+                        <option value="engineering">Engineering Coordination</option>
+                        <option value="customer-success">Customer Success</option>
+                        <option value="growth-marketing">Growth & Marketing</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Paste Meeting Notes (or use sample)</label>
+                    <textarea id="notes" placeholder="Meeting: Q1 Strategy Review
+Date: Feb 8, 2026
+Attendees: Sarah, John, Mike
+
+Discussion:
+- Reviewed quarterly goals
+- Discussed new feature launch
+- Marketing timeline discussion
+
+Action items:
+- John to complete spec by Feb 15
+- Sarah to review budget allocation
+...">Meeting: Q1 Product Strategy Review
+Date: February 8, 2026
+Attendees: Sarah (CEO), John (PM), Mike (Eng Lead), Lisa (Marketing)
+
+Discussion:
+- Reviewed Q4 2025 performance - achieved 85% of target goals
+- Discussed new mobile app feature launch timing
+- Marketing team needs 2 weeks minimum for campaign preparation
+- Engineering raised concerns about current API performance under load
+- Competitive landscape analysis shows we're falling behind on mobile
+- Need to prioritize performance improvements before adding new features
+
+Key Decisions:
+- Launch date moved from March 1 to March 15 to accommodate marketing timeline
+- Next two sprints (4 weeks) will focus exclusively on performance optimization
+- Mike to lead performance initiative with full eng support
+- Marketing timeline draft needed by end of this week
+- John will complete detailed competitor analysis by Feb 20
+
+Action Items Discussed:
+- John: Complete competitive analysis report (Due: Feb 20)
+- Sarah: Review and finalize Q2 budget allocation (Due: Feb 20)
+- Mike: Complete API performance audit (Due: Feb 15)
+- Lisa: Draft complete marketing campaign timeline (Due: Feb 12)
+- Engineering team: Set up comprehensive load testing environment (Due: Feb 18)
+- Mike: Present performance improvement roadmap to exec team (Due: Feb 22)
+
+Risks and Concerns:
+- API stability issues could delay launch further if not addressed
+- Q2 budget still not finalized - blocking some hiring decisions
+- Hiring timeline for 2 new senior engineers still undefined
+- Competitor X launched similar feature last week - time pressure increasing
+- Marketing budget may not be sufficient for desired reach
+
+Open Questions:
+- What is the final Q2 budget allocation?
+- When can we start the hiring process for engineering roles?
+- Do we have resources for additional contractor support if needed?
+- Should we consider a phased rollout to manage risk?</textarea>
+                </div>
+
+                <button class="btn" id="processBtn" onclick="processNotes()">
+                    🚀 Process Notes (Demo)
+                </button>
+            </div>
+
+            <div class="card">
+                <h2>💡 Quick Tips</h2>
+                <ul style="line-height: 2; color: #666;">
+                    <li>✓ Include meeting date and attendees</li>
+                    <li>✓ Note key decisions made</li>
+                    <li>✓ List action items with owners</li>
+                    <li>✓ Mention deadlines when discussed</li>
+                    <li>✓ Flag any risks or blockers</li>
+                </ul>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px; color: #333;">📊 Domain Focus</h3>
+                <p style="color: #666; line-height: 1.6;">
+                    <strong>Product Strategy:</strong> Roadmap, market positioning, vision<br>
+                    <strong>Engineering:</strong> Technical deliverables, sprint planning<br>
+                    <strong>Customer Success:</strong> Onboarding, retention, support<br>
+                    <strong>Growth:</strong> User acquisition, marketing campaigns
+                </p>
+
+                <div style="margin-top: 30px; padding: 15px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ff9800;">
+                    <strong>🎯 This is Demo Mode</strong><br>
+                    <span style="font-size: 0.9em; color: #666;">
+                        Results are simulated. Deploy to Vercel for real AI-powered analysis!
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="results">
+            <h2>📋 Results</h2>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="color: #666;">Processing your meeting notes...</p>
+                <p style="color: #999; font-size: 0.9em; margin-top: 10px;">Demo mode - simulating AI processing</p>
+            </div>
+
+            <div class="result-content" id="resultContent">
+                <div id="resultText"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function processNotes() {
+            const domain = document.getElementById('domain').value;
+            const notes = document.getElementById('notes').value.trim();
+
+            document.getElementById('resultContent').classList.remove('active');
+
+            if (!notes) {
+                alert('Please enter meeting notes');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('processBtn').disabled = true;
+
+            // Simulate API call with demo result
+            setTimeout(() => {
+                const demoResult = {
+                    analysis: `📊 MEETING ANALYSIS - ${domain.toUpperCase().replace('-', ' ')}
+
+═══════════════════════════════════════════════════════════
+
+📝 MEETING SUMMARY
+
+Q1 Product Strategy Review focused on launch timing and performance priorities. Key decision: Launch date moved to March 15 to address critical API performance concerns and align with marketing campaign readiness. Team consensus on prioritizing stability over speed to market.
+
+═══════════════════════════════════════════════════════════
+
+✅ ACTION ITEMS
+
+1. Complete Competitive Analysis Report
+   Owner: John
+   Due Date: February 20, 2026
+   Priority: HIGH
+   Dependencies: None
+   Status: Not started
+   Notes: Critical for understanding market position before launch
+
+2. Review and Finalize Q2 Budget Allocation
+   Owner: Sarah
+   Due Date: February 20, 2026
+   Priority: HIGH
+   Dependencies: Finance team input
+   Status: In progress
+   Notes: Blocking hiring decisions - urgent resolution needed
+
+3. Complete API Performance Audit
+   Owner: Mike
+   Due Date: February 15, 2026
+   Priority: HIGH
+   Dependencies: None
+   Status: Not started
+   Notes: Foundation for performance improvement roadmap
+
+4. Draft Complete Marketing Campaign Timeline
+   Owner: Lisa
+   Due Date: February 12, 2026 (End of week)
+   Priority: HIGH
+   Dependencies: Confirmed launch date (now set to March 15)
+   Status: Not started
+   Notes: Must align with March 15 launch date
+
+5. Set Up Comprehensive Load Testing Environment
+   Owner: Engineering Team
+   Due Date: February 18, 2026
+   Priority: MEDIUM
+   Dependencies: Performance audit completion
+   Status: Not started
+   Notes: Required for validating performance improvements
+
+6. Present Performance Improvement Roadmap
+   Owner: Mike
+   Due Date: February 22, 2026
+   Priority: HIGH
+   Dependencies: Performance audit, load testing results
+   Status: Not started
+   Notes: Executive presentation - needs comprehensive data
+
+═══════════════════════════════════════════════════════════
+
+🎯 KEY DECISIONS MADE
+
+✓ Launch Date Change: Moved from March 1 → March 15, 2026
+  Rationale: Accommodate marketing prep and performance fixes
+
+✓ Sprint Focus: Next 2 sprints (4 weeks) dedicated to performance
+  Impact: All new feature work paused
+
+✓ Engineering Leadership: Mike leads performance initiative
+  Resources: Full engineering team support allocated
+
+✓ Analysis Deadline: Competitor analysis due Feb 20
+  Purpose: Inform final launch strategy
+
+═══════════════════════════════════════════════════════════
+
+⚠️ RISKS & BLOCKERS
+
+🔴 HIGH PRIORITY RISKS:
+
+• API Stability Issues
+  Impact: Could force additional launch delays
+  Mitigation: Performance-focused sprints, load testing
+  Owner: Mike
+
+• Q2 Budget Uncertainty
+  Impact: Blocking 2 senior engineering hires
+  Mitigation: Sarah to finalize by Feb 20
+  Status: In progress
+
+• Competitive Pressure
+  Impact: Competitor X launched similar feature last week
+  Mitigation: Accelerate competitive analysis, consider phased rollout
+  Owner: John
+
+🟡 MEDIUM PRIORITY RISKS:
+
+• Hiring Timeline Undefined
+  Impact: Team capacity constraints may extend timelines
+  Mitigation: Clarify process and timeline with HR
+
+• Marketing Budget Constraints
+  Impact: May not achieve desired campaign reach
+  Mitigation: Review budget allocation, explore alternative channels
+
+• Resource Constraints
+  Impact: No contingency if team members unavailable
+  Mitigation: Evaluate contractor support options
+
+═══════════════════════════════════════════════════════════
+
+❓ OPEN QUESTIONS REQUIRING RESOLUTION
+
+1. Q2 Budget Final Numbers
+   Blocker for: Hiring decisions, resource planning
+   Owner: Sarah
+   Deadline: February 20
+
+2. Engineering Hiring Timeline
+   Blocker for: Capacity planning, project commitments
+   Owner: Sarah + HR
+   Deadline: TBD
+
+3. Contractor Support Budget
+   Blocker for: Risk mitigation planning
+   Owner: Sarah
+   Deadline: Feb 20 (with budget review)
+
+4. Phased Rollout Strategy
+   Blocker for: Launch planning, risk management
+   Owner: John + Mike
+   Deadline: Before Feb 22 (exec presentation)
+
+═══════════════════════════════════════════════════════════
+
+📅 CRITICAL PATH ANALYSIS
+
+Week of Feb 8-12:
+  → Lisa: Marketing timeline (Due: Feb 12)
+  → Mike: API performance audit (Due: Feb 15)
+
+Week of Feb 15-19:
+  → Eng Team: Load testing setup (Due: Feb 18)
+  → John: Competitive analysis (Due: Feb 20)
+  → Sarah: Q2 budget finalization (Due: Feb 20)
+
+Week of Feb 22-26:
+  → Mike: Performance roadmap presentation (Due: Feb 22)
+  → All: Review and adjust based on findings
+
+═══════════════════════════════════════════════════════════
+
+💡 RECOMMENDATIONS
+
+1. IMMEDIATE (This Week):
+   • Schedule Q2 budget review meeting (Sarah)
+   • Begin performance audit work (Mike)
+   • Start marketing timeline draft (Lisa)
+
+2. SHORT TERM (Next 2 Weeks):
+   • Expedite hiring timeline decision
+   • Evaluate contractor support options
+   • Consider phased rollout approach
+
+3. ONGOING:
+   • Weekly sync on performance improvements
+   • Bi-weekly competitive monitoring
+   • Daily standup focus on action item progress
+
+═══════════════════════════════════════════════════════════
+
+📊 PROGRESS METRICS TO TRACK
+
+• API performance improvement % (baseline from audit)
+• Action item completion rate (target: 100% by deadlines)
+• Competitive feature gap analysis (from John's report)
+• Marketing campaign readiness % (from Lisa's timeline)
+• Budget allocation clarity (binary: resolved/unresolved)
+
+═══════════════════════════════════════════════════════════
+
+This analysis was generated in DEMO mode.
+Deploy to Vercel for real AI-powered insights! 🚀`
+                };
+
+                displayResults(demoResult);
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('processBtn').disabled = false;
+            }, 2000);
+        }
+
+        function displayResults(result) {
+            const resultText = document.getElementById('resultText');
+            let html = '<div style="white-space: pre-wrap; line-height: 1.8; font-family: monospace; font-size: 0.9em;">';
+            html += result.analysis || result.result || JSON.stringify(result, null, 2);
+            html += '</div>';
+            resultText.innerHTML = html;
+            document.getElementById('resultContent').classList.add('active');
+        }
+    </script>
+</body>
+</html>
