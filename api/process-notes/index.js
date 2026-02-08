@@ -1,6 +1,7 @@
 // Azure Functions - Meeting Notes Processor
+// Using GitHub Models API (Free!)
 const { app } = require('@azure/functions');
-const { Anthropic } = require('@anthropic-ai/sdk');
+const OpenAI = require('openai');
 
 // Domain context mapping
 const DOMAIN_CONTEXTS = {
@@ -26,7 +27,7 @@ app.http('process-notes', {
             };
         }
 
-        context.log('Processing meeting notes request');
+        context.log('Processing meeting notes request with GitHub Models');
 
         try {
             // Parse request body
@@ -46,10 +47,10 @@ app.http('process-notes', {
                 };
             }
 
-            // Get API key from environment
-            const apiKey = process.env.ANTHROPIC_API_KEY;
-            if (!apiKey) {
-                context.log.error('ANTHROPIC_API_KEY not configured');
+            // Get GitHub token from environment
+            const githubToken = process.env.GITHUB_TOKEN;
+            if (!githubToken) {
+                context.log.error('GITHUB_TOKEN not configured');
                 return {
                     status: 500,
                     headers: {
@@ -57,13 +58,16 @@ app.http('process-notes', {
                         'Access-Control-Allow-Origin': '*'
                     },
                     body: JSON.stringify({
-                        error: 'Server configuration error'
+                        error: 'Server configuration error: GitHub token not set'
                     })
                 };
             }
 
-            // Initialize Anthropic client
-            const anthropic = new Anthropic({ apiKey });
+            // Initialize OpenAI client with GitHub Models endpoint
+            const openai = new OpenAI({
+                baseURL: 'https://models.inference.ai.azure.com',
+                apiKey: githubToken,
+            });
 
             // Get domain context
             const domainContext = DOMAIN_CONTEXTS[domain] || `Custom domain: ${domain}`;
@@ -84,7 +88,7 @@ Your role:
 Be thorough but concise. Always assign clear owners and realistic deadlines.`;
 
             // Create the prompt
-            const prompt = `Analyze these meeting notes and extract structured information:
+            const userPrompt = `Analyze these meeting notes and extract structured information:
 
 MEETING NOTES:
 ${notes}
@@ -103,23 +107,23 @@ Provide:
 
 Be specific and actionable. If owner or date is unclear, note that explicitly.`;
 
-            context.log('Calling Claude API...');
+            context.log('Calling GitHub Models API (GPT-4o)...');
 
-            // Call Claude API
-            const message = await anthropic.messages.create({
-                model: 'claude-sonnet-4-5-20250929',
-                max_tokens: 4096,
-                system: systemPrompt,
-                messages: [{
-                    role: 'user',
-                    content: prompt
-                }]
+            // Call GitHub Models API
+            const response = await openai.chat.completions.create({
+                model: 'gpt-4o',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                temperature: 0.7,
+                max_tokens: 2000,
             });
 
             // Extract the response
-            const analysis = message.content[0].text;
+            const analysis = response.choices[0].message.content;
 
-            context.log('Successfully processed notes');
+            context.log('Successfully processed notes with GitHub Models');
 
             // Return the result
             return {
@@ -132,6 +136,7 @@ Be specific and actionable. If owner or date is unclear, note that explicitly.`;
                     success: true,
                     analysis: analysis,
                     domain: domain,
+                    model: 'gpt-4o (GitHub Models)',
                     processedAt: new Date().toISOString()
                 })
             };
