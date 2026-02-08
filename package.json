@@ -4,6 +4,7 @@
   "description": "PM Assistant - Web interface for processing meeting notes with Claude AI on Azure",
   "main": "index.js",
   "scripts": {
+    "build": "echo 'No build needed - static HTML app'",
     "start": "func start",
     "test": "echo \"No tests yet\""
   },
